@@ -1,0 +1,120 @@
+{% extends 'loginSignup/base.html' %}
+
+{% block title %}Prediction Archive{% endblock %}
+
+{% block styles %}
+<style>
+    .content-area {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 40px);
+    }
+    .table-section {
+        height: 50%;
+        overflow-y: auto; /* Enables vertical scrolling */
+        overflow-x: auto; /* NEW: Enables horizontal scrolling */
+        margin-bottom: 20px;
+        border: 1px solid #2f2f44;
+        border-radius: 8px;
+    }
+    .plots-section {
+        height: 50%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+    }
+    .chart-container {
+        background: #1c1c28;
+        border: 1px solid #2f2f44;
+        border-radius: 12px;
+        padding: 20px;
+    }
+    table { border-collapse: collapse; width: 100%; }
+    th, td {
+        border-bottom: 1px solid #2f2f44;
+        padding: 12px;
+        text-align: left;
+        white-space: nowrap; /* NEW: Prevents text from wrapping */
+    }
+    th { background: #2a2a40; position: sticky; top: 0; }
+    tr:nth-child(even) { background: #232338; }
+    h2 { text-align: center; margin-top: 0; margin-bottom: 20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="table-section">
+    <h2>Your Prediction History</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Major</th>
+                <th>CGPA</th>
+                <th>Degree</th>
+                <th>Skills</th>
+                <th>Top Prediction</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pred in history %}
+            <tr>
+                <td>{{ pred.major }}</td>
+                <td>{{ pred.cgpa }}</td>
+                <td>{{ pred.degree }}</td>
+                <td>{{ pred.skills }}</td>
+                <td>{{ pred.predictions_list.0.role }} ({{ pred.predictions_list.0.score }})</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center;">No history yet. Go make some predictions!</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="plots-section">
+    <div class="chart-container"><canvas id="topRolesChart"></canvas></div>
+    <div class="chart-container"><canvas id="skillsChart"></canvas></div>
+    <div class="chart-container"><canvas id="cgpaChart"></canvas></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // --- Chart 1: Top Roles Bar Chart ---
+    const ctx1 = document.getElementById('topRolesChart');
+    if (ctx1) {
+        const chart1Labels = JSON.parse('{{ chart1_labels|safe }}');
+        const chart1Data = JSON.parse('{{ chart1_data|safe }}');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: { labels: chart1Labels, datasets: [{ label: '# of Times as Top Prediction', data: chart1Data, backgroundColor: 'rgba(0, 242, 254, 0.5)' }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Top Predicted Roles', color: '#e4e4e7', font: { size: 16 } } }, scales: { y: { beginAtZero: true, ticks: { color: '#e4e4e7', stepSize: 1 } }, x: { ticks: { color: '#e4e4e7' } } } }
+        });
+    }
+
+    // --- Chart 2: Skills Frequency Doughnut Chart ---
+    const ctx2 = document.getElementById('skillsChart');
+    if (ctx2) {
+        const chart2Labels = JSON.parse('{{ chart2_labels|safe }}');
+        const chart2Data = JSON.parse('{{ chart2_data|safe }}');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: { labels: chart2Labels, datasets: [{ label: 'Skill Frequency', data: chart2Data, backgroundColor: ['#00f2fe', '#4facfe', '#28a745', '#ffc107', '#dc3545', '#6f42c1'] }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Most Common Skills', color: '#e4e4e7', font: { size: 16 } } } }
+        });
+    }
+
+    // --- Chart 3: Avg CGPA by Major Horizontal Bar Chart ---
+    const ctx3 = document.getElementById('cgpaChart');
+    if (ctx3) {
+        const chart3Labels = JSON.parse('{{ chart3_labels|safe }}');
+        const chart3Data = JSON.parse('{{ chart3_data|safe }}');
+        new Chart(ctx3, {
+            type: 'bar',
+            data: { labels: chart3Labels, datasets: [{ label: 'Average CGPA', data: chart3Data, backgroundColor: 'rgba(79, 172, 254, 0.5)' }] },
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Average CGPA by Major', color: '#e4e4e7', font: { size: 16 } } }, scales: { y: { ticks: { color: '#e4e4e7' } }, x: { ticks: { color: '#e4e4e7' } } } }
+        });
+    }
+</script>
+{% endblock %}

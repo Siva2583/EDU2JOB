@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+/* --- Original CSS --- */
+body { margin:0; padding:0; font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif; background:#0f0f17; color:#e4e4e7; }
+.sidebar { background:linear-gradient(180deg,#1f1f2e,#151f2e); display:flex; flex-direction:column; align-items:center; gap:25px; width:280px; height:100vh; position:fixed; padding-top:30px; box-shadow:4px 0 15px rgba(0,0,0,0.5); }
+.sidebar h1 { margin:0; font-size:1.5rem; background:linear-gradient(90deg,#4facfe,#00f2fe); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+button { width:200px; padding:12px 16px; border:none; border-radius:10px; font-weight:600; font-size:1rem; cursor:pointer; background:#2a2a40; color:#e4e4e7; transition: all 0.3s ease; }
+button:hover { background:linear-gradient(90deg,#4facfe,#00f2fe); color:#fff; transform:translateY(-3px); box-shadow:0 8px 18px rgba(0,242,254,0.25); }
+#profile-form,#predict-form { position:absolute; top:12vh; left:25%; width:600px; display:none; flex-direction:column; gap:15px; padding:55px; border-radius:12px; background:#1c1c28; border:1px solid #2f2f44; box-shadow:0 8px 25px rgba(0,0,0,0.5); animation:fadeIn 0.3s ease-in-out; }
+#profile-form label,#predict-form label { font-size:0.9rem; color:#cfcfd6; margin-bottom:4px; }
+#profile-form input,#predict-form input { padding:10px; border-radius:6px; border:none; width:100%; background:#2a2a40; color:#fff; outline:none; transition:border 0.2s ease; }
+#profile-form input:focus,#predict-form input:focus { border:2px solid #00f2fe; background:#232338; }
+#profile-form button,#predict-form button { background:linear-gradient(90deg,#4facfe,#00f2fe); font-weight:700; }
+#editProfile { background:#ffa500; font-weight:700; margin-top:10px; }
+@keyframes fadeIn { from {opacity:0; transform:translateY(-10px);} to {opacity:1; transform:translateY(0);} }
+table { border-collapse:collapse; width:70%; margin-left:300px; margin-top:20px; }
+table th, table td { border:1px solid #2f2f44; padding:8px; text-align:left; }
+table th {background:#2a2a40; color:#fff;}
+table tr:nth-child(even){background:#1c1c28;}
+</style>
+
+<style id="visual-enhancements">
+    /* --- Starry Night Background --- */
+    body {
+        font-family: 'Poppins', "Segoe UI", sans-serif;
+        background: #000; /* Darker base for stars */
+        overflow: hidden; /* Hide scrollbars from stars */
+    }
+    .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: transparent; }
+    .stars::after, .stars::before {
+        content: ''; position: absolute; width: 2px; height: 2px;
+        background: white; border-radius: 50%; box-shadow: 0 0 1px #fff, 0 0 2px #fff;
+        animation: animateStar 100s linear infinite;
+    }
+    .stars::before {
+        width: 3px; height: 3px; animation-duration: 150s;
+        box-shadow: 0 0 1px #fff, 0 0 4px #fff;
+    }
+    @function multiple-box-shadow($n) {
+        $value: '#{random(2000)}px #{random(2000)}px #FFF';
+        @for $i from 2 through $n {
+            $value: '#{$value} , #{random(2000)}px #{random(2000)}px #FFF';
+        }
+        @return unquote($value);
+    }
+    #stars1 { width: 1px; height: 1px; background: transparent; box-shadow: multiple-box-shadow(100); animation: animStar 50s linear infinite; }
+    #stars2 { width: 2px; height: 2px; background: transparent; box-shadow: multiple-box-shadow(80); animation: animStar 100s linear infinite; }
+    #stars3 { width: 3px; height: 3px; background: transparent; box-shadow: multiple-box-shadow(30); animation: animStar 150s linear infinite; }
+    @keyframes animStar { from {transform: translateY(0px);} to {transform: translateY(-2000px);} }
+
+
+    /* --- Sidebar Enhancements --- */
+    .sidebar { z-index: 10; }
+    .sidebar h1 { font-weight: 700; letter-spacing: 1px; }
+    .sidebar button { display: flex; align-items: center; justify-content: flex-start; gap: 15px; padding-left: 20px; border: 2px solid transparent; }
+    .sidebar button.active { background: linear-gradient(90deg, #4facfe, #00f2fe); color: #fff; transform: translateY(-3px); box-shadow: 0 8px 18px rgba(0, 242, 254, 0.25); }
+    .sidebar button i { font-size: 1.1rem; width: 20px; }
+
+    /* --- Main Content Wrapper --- */
+    .main-content { margin-left: 280px; padding: 40px; position: relative; z-index: 5; height: calc(100vh - 80px); display: flex; align-items: center; justify-content: center; }
+    
+    /* --- Welcome Screen --- */
+    #welcome-screen { text-align: center; color: #fff; animation: fadeIn 0.8s ease-in-out; }
+    .welcome-title { font-size: 3rem; font-weight: 700; background: linear-gradient(90deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+    .welcome-subtitle { font-size: 1.2rem; color: #a1a1aa; margin-bottom: 40px; }
+    .quick-actions-container { display: flex; gap: 30px; justify-content: center; }
+    .quick-action-card {
+        background: rgba(42, 42, 64, 0.6);
+        border: 1px solid #2f2f44;
+        border-radius: 12px;
+        padding: 30px 40px;
+        width: 250px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+    }
+    .quick-action-card:hover { transform: translateY(-8px); border-color: #00f2fe; box-shadow: 0 10px 20px rgba(0, 242, 254, 0.15); }
+    .quick-action-card i { font-size: 2.5rem; margin-bottom: 15px; color: #c084fc; }
+    .quick-action-card h3 { margin: 0 0 5px 0; font-size: 1.3rem; color: #e4e4e7; }
+    .quick-action-card p { margin: 0; color: #a1a1aa; font-size: 0.9rem; }
+
+
+    /* --- Form Enhancements --- */
+    #profile-form, #predict-form { 
+        position: static; 
+        width: 100%;
+        max-width: 800px;
+    }
+    
+    /* --- FIXED: Styles for Tagify Skills Input --- */
+    .tagify {
+        background: #2a2a40;
+        border-radius: 6px;
+        padding: 5px;
+        border: none !important;
+        width: 100%;
+        --tags-text-color: #fff; /* Color of the tags */
+        --tags-bg: #007bff; /* Background of the tags */
+        --tag-text-color--edit: #fff;
+    }
+    .tagify:hover { border: none; }
+    .tagify__input {
+        color: #e4e4e7;
+        margin: 5px;
+        padding: .3em .5em;
+    }
+    .tagify__input::before {
+        color: #a1a1aa;
+    }
+    .tagify__tag {
+        background-color: #4facfe;
+    }
+    /* --- END FIX --- */
+    
+    /* --- Prediction Table Enhancements --- */
+    #predictionResultContainer { 
+        margin: 0 auto; 
+        width: 100%;
+        max-width: 1100px;
+        padding: 30px; 
+        background: rgba(28, 28, 40, 0.8); 
+        backdrop-filter: blur(5px); 
+        border-radius: 12px; 
+        border: 1px solid #2f2f44; 
+        box-shadow: 0 8px 25px rgba(0,0,0,0.5); 
+    }
+    #predictionResultContainer h2 { text-align: center; margin-top: 0; margin-bottom: 25px; background: linear-gradient(90deg, #4facfe, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    #predictionResultTable { 
+        width: 100%; 
+        margin: 0;
+        border-collapse: separate; 
+        border-spacing: 0 8px; 
+    }
+    #predictionResultTable th, #predictionResultTable td { border: none; padding: 15px; }
+    #predictionResultTable th { background: #2a2a40; font-weight: 600; color: #fff; }
+    #predictionResultTable tr { background: #2a2a40; transition: transform 0.2s ease, background 0.2s ease; }
+    #predictionResultTable tr:hover { transform: scale(1.02); background: #353550; }
+    #predictionResultTable td { background: #1f1f2e; }
+    #predictionResultTable tr td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+    #predictionResultTable tr td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+    @keyframes rowFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in-row { animation: rowFadeIn 0.5s ease-out forwards; }
+    .confidence-bar { width: 100%; height: 20px; background-color: #333; border-radius: 10px; overflow: hidden; }
+    .confidence-bar-inner { height: 100%; border-radius: 10px; text-align: center; color: white; font-size: 0.8rem; line-height: 20px; font-weight: 600; transition: width 0.5s ease-in-out; }
+
+    /* --- Toast Notification --- */
+    #toast-container { position: fixed; top: 20px; right: 20px; z-index: 1000; }
+    .toast { background-color: #28a745; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); opacity: 0; transform: translateX(100%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+    .toast.show { opacity: 1; transform: translateX(0); }
+</style>
+</head>
+<body>
+
+<div id="stars1"></div>
+<div id="stars2"></div>
+<div id="stars3"></div>
+
+<div class="sidebar">
+    <h1>Welcome Back!</h1>
+    <button class="profile-info"><i class="fa-solid fa-user-gear"></i> Profile Info</button>
+    <button class="predict"><i class="fa-solid fa-brain"></i> Predict</button>
+    <a href="{% url 'archive' %}" style="text-decoration: none;">
+        <button class="archive"><i class="fa-solid fa-box-archive"></i> View Archive</button>
+    </a>
+</div>
+
+<main class="main-content">
+    
+    <div id="welcome-screen">
+        <h1 class="welcome-title">Hello, {{ user.username|default:'Explorer' }}!</h1>
+        <p class="welcome-subtitle">What would you like to do today?</p>
+        <div class="quick-actions-container">
+            <div class="quick-action-card" id="quick-action-profile">
+                <i class="fa-solid fa-address-card"></i>
+                <h3>Update Profile</h3>
+                <p>Keep your details current for the best predictions.</p>
+            </div>
+            <div class="quick-action-card" id="quick-action-predict">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <h3>Get Prediction</h3>
+                <p>Discover your potential career paths right now.</p>
+            </div>
+        </div>
+    </div>
+    
+    <form id="profile-form" method="POST" style="display:none;">
+        {% csrf_token %}
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" value="{{user.username}}" readonly>
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="{{user.email}}" readonly>
+        <label for="cgpa">CGPA</label>
+        <input type="number" id="profile-cgpa" name="cgpa">
+        <label for="degree">Degree</label>
+        <input type="text" id="profile-degree" name="degree">
+        <label for="skills">Skills</label>
+        <input type="text" id="profile-skills" name="skills" placeholder="Type or select skills...">
+        <label for="yop">Year of Graduation:</label>
+        <input type="number" id="profile-yearofpass" name="yop">
+        <button id="submitProfile" type="button">Submit</button>
+        <button id="editProfile" type="button" style="display:none;">Edit</button>
+    </form>
+
+    <form id="predict-form" method="POST" style="display:none;">
+        {% csrf_token %}
+        <label for="major">Major:</label>
+        <input id="major" name="major" list="majors" placeholder="Select your major">
+        <datalist id="majors">
+        <option value="Civil"><option value="Mechanical"><option value="Business"><option value="Computer Science"><option value="Finance"><option value="Electronics">
+        </datalist>
+        <label for="cgpa">CGPA</label>
+        <input type="number" id="predict-cgpa" name="cgpa">
+        <label for="degree">Degree:</label>
+        <input id="predict-degree" name="degree" list="degrees" placeholder="Select your degree">
+        <datalist id="degrees">
+        <option value="MBA"><option value="M.Sc"><option value="B.Tech"><option value="M.Tech"><option value="B.Sc">
+        </datalist>
+        <label for="skills">Skills</label>
+        <input type="text" id="predict-skills" name="skills" placeholder="Type or select skills...">
+        <label for="yop">Year of Graduation:</label>
+        <input type="number" id="predict-yearofpass" name="yop">
+        <button id="predictSubmit" type="button">Predict</button>
+    </form>
+    
+    <div id="toast-container"></div>
+
+    <div id="predictionResultContainer" style="display:none;">
+        <h2>✨ Your Predicted Career Paths</h2>
+        <table id="predictionResultTable">
+            <thead>
+                <tr>
+                    <th style="width:30%;">Role</th>
+                    <th style="width:25%;">Confidence</th>
+                    <th>Justification & Scope</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+<script>
+// --- JavaScript (Unchanged) ---
+const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+const profileBtn = document.querySelector(".profile-info");
+const predictBtn = document.querySelector(".predict");
+const profileForm = document.getElementById("profile-form");
+const predictForm = document.getElementById("predict-form");
+const predictionResultContainer = document.getElementById("predictionResultContainer");
+const welcomeScreen = document.getElementById('welcome-screen');
+const skillsWhitelist = ["Python","SQL","Java","C++","JavaScript","HTML","CSS","Git","Linux","Django","React","Matlab","Excel","Accounting","Financial Modeling","Electronics","Microcontrollers","RTOS","SolidWorks","AutoCAD","Lean Manufacturing","Thermodynamics","Mechanics","Materials","CAD","Valuation","M&A"];
+const profileSkillsTagify = new Tagify(document.querySelector('#profile-skills'), { whitelist: skillsWhitelist, dropdown: { enabled:1, maxItems:20, closeOnSelect:true }});
+const predictSkillsTagify = new Tagify(document.querySelector('#predict-skills'), { whitelist: skillsWhitelist, dropdown: { enabled:1, maxItems:20, closeOnSelect:true }});
+profileBtn.addEventListener("click", () => {
+    welcomeScreen.style.display = 'none';
+    profileForm.style.display = 'flex';
+    predictForm.style.display = "none";
+    predictionResultContainer.style.display = "none";
+});
+predictBtn.addEventListener("click", () => {
+    welcomeScreen.style.display = 'none';
+    predictForm.style.display = 'flex';
+    profileForm.style.display = "none";
+    predictionResultContainer.style.display = "none";
+});
+window.addEventListener("DOMContentLoaded", () => {
+    fetch("{% url 'get_latest_profile' %}", { method:"GET", headers:{"X-Requested-With":"XMLHttpRequest"} })
+    .then(res => res.json())
+    .then(data => {
+        if(data.cgpa){
+            document.getElementById("profile-cgpa").value = data.cgpa;
+            document.getElementById("profile-degree").value = data.degree;
+            profileSkillsTagify.removeAllTags();
+            profileSkillsTagify.addTags(Array.isArray(data.skills)?data.skills:[]);
+            document.getElementById("profile-yearofpass").value = data.year_of_graduation;
+            profileForm.querySelectorAll("input").forEach(inp => inp.disabled = true);
+            document.getElementById("submitProfile").style.display = "none";
+            document.getElementById("editProfile").style.display = "inline-block";
+        }
+    }).catch(err => console.error(err));
+});
+document.getElementById("editProfile").addEventListener("click", () => {
+    profileForm.querySelectorAll("input").forEach(inp => inp.disabled = false);
+    document.getElementById("submitProfile").style.display = "inline-block";
+    document.getElementById("editProfile").style.display = "none";
+});
+document.getElementById("submitProfile").addEventListener("click", (e) => {
+    e.preventDefault();
+    const data = { username: document.getElementById("username").value, email: document.getElementById("email").value, cgpa: document.getElementById("profile-cgpa").value, degree: document.getElementById("profile-degree").value, skills: profileSkillsTagify.value.map(tag => tag.value).join(","), yop: document.getElementById("profile-yearofpass").value };
+    fetch("{% url 'update_profile' %}", { method:"POST", headers:{"Content-Type":"application/json", "X-CSRFToken": csrftoken, "X-Requested-With": "XMLHttpRequest"}, body: JSON.stringify(data) })
+    .then(res => res.json())
+    .then(data => {
+        console.log(data.message);
+        profileForm.querySelectorAll("input").forEach(inp => inp.disabled = true);
+        document.getElementById("submitProfile").style.display = "none";
+        document.getElementById("editProfile").style.display = "inline-block";
+    }).catch(err => console.error(err));
+});
+document.getElementById("predictSubmit").addEventListener("click", (e) => {
+    e.preventDefault();
+    predictForm.style.display = "none";
+    const skillsArray = predictSkillsTagify.value.map(tag => tag.value);
+    const data = { major: document.getElementById("major").value, cgpa: document.getElementById("predict-cgpa").value, degree: document.getElementById("predict-degree").value.trim(), skills: skillsArray.join(","), yop: document.getElementById("predict-yearofpass").value };
+    const resultBody = document.getElementById("predictionResultTable").querySelector("tbody");
+    resultBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">🧠 Analyzing your profile...</td></tr>';
+    predictionResultContainer.style.display = "block";
+    fetch("{% url 'save_prediction' %}", { method:"POST", headers:{"Content-Type":"application/json", "X-CSRFToken": csrftoken}, body: JSON.stringify(data) })
+    .then(res => res.json())
+    .then(response => {
+        resultBody.innerHTML = "";
+        if (response.predictions && response.predictions.length > 0) {
+            response.predictions.forEach(pred => {
+                const row = document.createElement("tr");
+                const score = parseFloat(pred.score);
+                let barColor = score > 75 ? '#28a745' : score > 50 ? '#ffc107' : '#dc3545';
+                const confidenceCell = `<div class="confidence-bar"><div class="confidence-bar-inner" style="width:${score}%; background-color:${barColor};">${score}%</div></div>`;
+                row.innerHTML = `<td><strong>${pred.role}</strong></td><td>${confidenceCell}</td><td>${pred.scope}</td>`;
+                resultBody.appendChild(row);
+            });
+        } else {
+            const errorMessage = response.error || "Could not retrieve prediction.";
+            resultBody.innerHTML = `<tr><td colspan="3" style="text-align:center;">${errorMessage}</td></tr>`;
+        }
+    })
+    .catch(err => {
+        console.error("Error saving prediction:", err);
+        resultBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">An error occurred.</td></tr>';
+    });
+});
+</script>
+
+<script>
+// --- New Script Block for Additive Enhancements ---
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('quick-action-profile').addEventListener('click', () => profileBtn.click());
+    document.getElementById('quick-action-predict').addEventListener('click', () => predictBtn.click());
+    const sidebarButtons = document.querySelectorAll('.sidebar button');
+    sidebarButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            if (button.classList.contains('profile-info') || button.classList.contains('predict')) {
+                sidebarButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            }
+        });
+    });
+    function showToast(message) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${message}`;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, 3000);
+    }
+    const editProfileButton = document.getElementById('editProfile');
+    const profileObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'style' && editProfileButton.style.display === 'inline-block') {
+                showToast('Profile updated successfully!');
+            }
+        });
+    });
+    profileObserver.observe(editProfileButton, { attributes: true });
+    const resultBody = document.getElementById("predictionResultTable").querySelector("tbody");
+    const tableObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeName === 'TR') {
+                    setTimeout(() => node.classList.add('fade-in-row'), 10);
+                }
+            });
+        });
+    });
+    tableObserver.observe(resultBody, { childList: true });
+});
+</script>
+</body>
+</html>
